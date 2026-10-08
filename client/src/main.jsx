@@ -13,120 +13,121 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const demoLeads=[
 
- {id:'demo-1',name:'Arjun Mehta',company:'Nova Labs',email:'arjun@novalabs.io',status:'Qualified',score:92,last:'2 hours ago'},
+ {id:'demo-1',name:'Arjun Mehta',company:'Nova Labs',email:'arjun@novalabs.io',status:'Qualified',score:92,last:'2 hours ago'},
 
- {id:'demo-2',name:'Priya Sharma',company:'Growthly',email:'priya@growthly.in',status:'Interested',score:84,last:'5 hours ago'},
+ {id:'demo-2',name:'Priya Sharma',company:'Growthly',email:'priya@growthly.in',status:'Interested',score:84,last:'5 hours ago'},
 
- {id:'demo-3',name:'Rahul Sen',company:'Orbit Systems',email:'rahul@orbitsystems.com',status:'New',score:71,last:'Yesterday'},
+ {id:'demo-3',name:'Rahul Sen',company:'Orbit Systems',email:'rahul@orbitsystems.com',status:'New',score:71,last:'Yesterday'},
 
- {id:'demo-4',name:'Sneha Roy',company:'PixelCraft',email:'sneha@pixelcraft.co',status:'Follow-up',score:78,last:'Yesterday'}
+ {id:'demo-4',name:'Sneha Roy',company:'PixelCraft',email:'sneha@pixelcraft.co',status:'Follow-up',score:78,last:'Yesterday'}
 
 ];
 
 function AuthScreen(){
 
- const [mode,setMode]=useState('login'),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const [mode,setMode]=useState('login'),[name,setName]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState('');
 
- const submit=async e=>{e.preventDefault();setBusy(true);setError('');
+ const submit=async e=>{e.preventDefault();setBusy(true);setError('');
 
-   if(!supabase){setError('Supabase is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to client/.env');setBusy(false);return;}
+   if(!supabase){setError('Supabase is not configured yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to client/.env');setBusy(false);return;}
 
-   const result=mode==='login'
+   const result=mode==='login'
 
-    ? await supabase.auth.signInWithPassword({email,password})
+    ? await supabase.auth.signInWithPassword({email,password})
 
-    : await supabase.auth.signUp({email,password,options:{data:{full_name:name}}});
+    : await supabase.auth.signUp({email,password,options:{data:{full_name:name}}});
 
-   if(result.error)setError(result.error.message); else if(mode==='signup' && !result.data.session)setError('Account created. Check your email to confirm your account.');
+   if(result.error)setError(result.error.message); else if(mode==='signup' && !result.data.session)setError('Account created. Check your email to confirm your account.');
 
-   setBusy(false);
+   setBusy(false);
 
- };
+ };
 
- return <div className="auth-page"><div className="auth-card"><div className="auth-brand"><div className="logo">L</div><span>LeadPilot <b>AI</b></span></div><h1>{mode==='login'?'Welcome back':'Create your workspace'}</h1><p>{mode==='login'?'Sign in to manage your leads.':'Start managing and following up with your leads.'}</p>
+ return <div className="auth-page"><div className="auth-card"><div className="auth-brand"><div className="logo">L</div><span>LeadPilot <b>AI</b></span></div><h1>{mode==='login'?'Welcome back':'Create your workspace'}</h1><p>{mode==='login'?'Sign in to manage your leads.':'Start managing and following up with your leads.'}</p>
 
- <form onSubmit={submit}>{mode==='signup'&&<label>Full name<input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" required/></label>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required/></label><label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" minLength="6" required/></label>{error&&<div className="auth-error">{error}</div>}<button className="primary auth-submit" disabled={busy}>{busy?'Please wait...':mode==='login'?'Sign in':'Create account'}</button></form>
+ <form onSubmit={submit}>{mode==='signup'&&<label>Full name<input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name" required/></label>}<label>Email<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required/></label><label>Password<input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="••••••••" minLength="6" required/></label>{error&&<div className="auth-error">{error}</div>}<button className="primary auth-submit" disabled={busy}>{busy?'Please wait...':mode==='login'?'Sign in':'Create account'}</button></form>
 
- <button className="switch-auth" onClick={()=>{setMode(mode==='login'?'signup':'login');setError('')}}>{mode==='login'?"Don't have an account? Sign up":"Already have an account? Sign in"}</button></div></div>
+ <button className="switch-auth" onClick={()=>{setMode(mode==='login'?'signup':'login');setError('')}}>{mode==='login'?"Don't have an account? Sign up":"Already have an account? Sign in"}</button></div></div>
 
 }
 
 function App(){
 
- const [session,setSession]=useState(null),[ready,setReady]=useState(!supabase);
+ const [session,setSession]=useState(null),[ready,setReady]=useState(!supabase);
 
- const [page,setPage]=useState('Dashboard'); const [mobile,setMobile]=useState(false); const [selected,setSelected]=useState(null);
+ const [page,setPage]=useState('Dashboard'); const [mobile,setMobile]=useState(false); const [selected,setSelected]=useState(null);
 
- const [leads,setLeads]=useState(demoLeads);
+ const [leads,setLeads]=useState(demoLeads);
 
- const loadLeads=async user=>{
+ const loadLeads=async user=>{
 
-   if(!supabase||!user){setLeads(demoLeads);return;}
+   if(!supabase||!user){setLeads(demoLeads);return;}
 
-   const {data,error}=await supabase.from('leads').select('*').order('created_at',{ascending:false});
+   const {data,error}=await supabase.from('leads').select('\*').order('created_at',{ascending:false});
 
-   if(!error)setLeads((data||[]).map(l=>({...l,last:l.last_activity?new Date(l.last_activity).toLocaleString():'Just now'})));
+   if(!error)setLeads((data||[]).map(l=>({...l,last:l.last_activity?new Date(l.last_activity).toLocaleString():'Just now'})));
 
- };
+ };
 
- useEffect(()=>{ if(!supabase){setReady(true);return;} supabase.auth.getSession().then(({data})=>{setSession(data.session);loadLeads(data.session?.user);setReady(true)}); const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);loadLeads(s?.user)}); return()=>subscription.unsubscribe()},[]);
+ useEffect(()=>{ if(!supabase){setReady(true);return;} supabase.auth.getSession().then(({data})=>{setSession(data.session);loadLeads(data.session?.user);setReady(true)}); const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>{setSession(s);loadLeads(s?.user)}); return()=>subscription.unsubscribe()},[]);
 
- const nav=[['Dashboard',LayoutDashboard],['Leads',Users],['AI Follow-ups',Sparkles],['Conversations',MessageSquareText],['Settings',Settings]];
+ const nav=[['Dashboard',LayoutDashboard],['Leads',Users],['AI Follow-ups',Sparkles],['Conversations',MessageSquareText],['Settings',Settings]];
 
- if(!ready)return <div className="loading">Loading LeadPilot AI...</div>;
+ if(!ready)return <div className="loading">Loading LeadPilot AI...</div>;
 
- if(supabase&&!session)return <AuthScreen/>;
+ if(supabase&&!session)return <AuthScreen/>;
 
- return <div className="app">
+ return <div className="app">
 
-  <aside className={mobile?'sidebar open':'sidebar'}>
+  <aside className={mobile?'sidebar open':'sidebar'}>
 
-   <div className="brand"><div className="logo">L</div><span>LeadPilot <b>AI</b></span><button className="close" onClick={()=>setMobile(false)}><X/></button></div>
+   <div className="brand"><div className="logo">L</div><span>LeadPilot <b>AI</b></span><button className="close" onClick={()=>setMobile(false)}><X/></button></div>
 
-   <div className="workspace"><div className="avatar">A</div><div><small>Workspace</small><strong>My Business</strong></div><ChevronRight size={16}/></div>
+   <div className="workspace"><div className="avatar">A</div><div><small>Workspace</small><strong>My Business</strong></div><ChevronRight size={16}/></div>
 
-   <nav>{nav.map(([n,I])=><button key={n} className={page===n?'active':''} onClick={()=>{setPage(n);setMobile(false)}}><I size={18}/><span>{n}</span>{n==='AI Follow-ups'&&<em>AI</em>}</button>)}</nav>
+   <nav>{nav.map(([n,I])=><button key={n} className={page===n?'active':''} onClick={()=>{setPage(n);setMobile(false)}}><I size={18}/><span>{n}</span>{n==='AI Follow-ups'&&<em>AI</em>}</button>)}</nav>
 
-   <div className="upgrade"><Sparkles size={18}/><strong>Unlock more leads</strong><p>Upgrade your plan to automate more follow-ups.</p><button>View plans</button></div>
+   <div className="upgrade"><Sparkles size={18}/><strong>Unlock more leads</strong><p>Upgrade your plan to automate more follow-ups.</p><button>View plans</button></div>
 
-   <div className="profile"><div className="avatar">AD</div><div><strong>{session?.user?.user_metadata?.full_name||'Anirban'}</strong><small>{session?'Free plan':'Demo mode'}</small></div>{session&&<button className="signout" onClick={()=>supabase.auth.signOut()}><Settings size={17}/></button>}</div>
+   <div className="profile"><div className="avatar">AD</div><div><strong>{session?.user?.user_metadata?.full_name||'Anirban'}</strong><small>{session?'Free plan':'Demo mode'}</small></div>{session&&<button className="signout" onClick={()=>supabase.auth.signOut()}><Settings size={17}/></button>}</div>
 
-  </aside>
+  </aside>
 
-  {mobile&&<div className="overlay" onClick={()=>setMobile(false)}/>}
+  {mobile&&<div className="overlay" onClick={()=>setMobile(false)}/>}
 
-  <main>
+  <main>
 
-   <header><button className="menu" onClick={()=>setMobile(true)}><Menu/></button><div className="crumb">{page}</div><div className="header-actions"><button className="icon"><Search/></button><button className="icon"><Bell/><i/></button><div className="topavatar">AD</div></div></header>
+   <header><button className="menu" onClick={()=>setMobile(true)}><Menu/></button><div className="crumb">{page}</div><div className="header-actions"><button className="icon"><Search/></button><button className="icon"><Bell/><i/></button><div className="topavatar">AD</div></div></header>
 
-   {page==='Dashboard'&&<Dashboard leads={leads} setPage={setPage} setSelected={setSelected}/>}
+   {page==='Dashboard'&&<Dashboard leads={leads} setPage={setPage} setSelected={setSelected}/>}
 
-   {page==='Leads'&&<Leads leads={leads} setLeads={setLeads} setSelected={setSelected} session={session}/>}
+   {page==='Leads'&&<Leads leads={leads} setLeads={setLeads} setSelected={setSelected} session={session}/>}
 
-   {page==='AI Follow-ups'&&<Followups leads={leads} session={session} setLeads={setLeads}/>}
+   {page==='AI Follow-ups'&&<Followups leads={leads} session={session} setLeads={setLeads}/>}
 
-   {page==='Conversations'&&<Conversations session={session}/>}
+   {page==='Conversations'&&<Conversations session={session}/>}
 
-   {page==='Settings'&&<SettingsPage/>}
+   {page==='Settings'&&<SettingsPage/>}
 
-  </main>
+  </main>
 
 {selected&&(
 
-  <LeadModal
+  <LeadModal
 
-    lead={selected}
+    lead={selected}
 
-    close={()=>setSelected(null)}
+    close={()=>setSelected(null)}
 
-    setLeads={setLeads}
+    setLeads={setLeads}
 
-    session={session}
+    session={session}
 
-  />
+  />
 
 )} </div>
 
@@ -134,35 +135,35 @@ function App(){
 
 function Dashboard({leads,setPage,setSelected}){
 
- return <section className="content">
+ return <section className="content">
 
-  <div className="welcome"><div><p className="eyebrow">THURSDAY, OCTOBER 8</p><h1>Good evening, Anirban 👋</h1><p>Here's what's happening with your leads today.</p></div><button className="primary" onClick={()=>setPage('Leads')}><Plus size={17}/> Add lead</button></div>
+  <div className="welcome"><div><p className="eyebrow">THURSDAY, OCTOBER 8</p><h1>Good evening, Anirban 👋</h1><p>Here's what's happening with your leads today.</p></div><button className="primary" onClick={()=>setPage('Leads')}><Plus size={17}/> Add lead</button></div>
 
-  <div className="stats">
+  <div className="stats">
 
-   <Stat title="Total leads" value="248" change="+12.5%" icon={Users}/><Stat title="Qualified" value="64" change="+8.2%" icon={CheckCircle2}/><Stat title="Follow-ups due" value="18" change="6 today" icon={Clock3}/><Stat title="AI conversations" value="1,284" change="+24.8%" icon={Sparkles}/>
+   <Stat title="Total leads" value="248" change="+12.5%" icon={Users}/><Stat title="Qualified" value="64" change="+8.2%" icon={CheckCircle2}/><Stat title="Follow-ups due" value="18" change="6 today" icon={Clock3}/><Stat title="AI conversations" value="1,284" change="+24.8%" icon={Sparkles}/>
 
-  </div>
+  </div>
 
-  <div className="grid">
+  <div className="grid">
 
-   <div className="panel chart"><div className="panel-head"><div><h2>Lead activity</h2><p>Leads added over the last 7 days</p></div><select><option>Last 7 days</option></select></div><div className="bars">{[42,60,48,74,58,88,68].map((v,i)=><div key={i} className="barcol"><div className="bar" style={{height:v+'%'}}></div><span>{['Fri','Sat','Sun','Mon','Tue','Wed','Thu'][i]}</span></div>)}</div></div>
+   <div className="panel chart"><div className="panel-head"><div><h2>Lead activity</h2><p>Leads added over the last 7 days</p></div><select><option>Last 7 days</option></select></div><div className="bars">{[42,60,48,74,58,88,68].map((v,i)=><div key={i} className="barcol"><div className="bar" style={{height:v+'%'}}></div><span>{['Fri','Sat','Sun','Mon','Tue','Wed','Thu'][i]}</span></div>)}</div></div>
 
-   <div className="panel"><div className="panel-head"><div><h2>Follow-ups due</h2><p>Leads that need attention</p></div><button className="textbtn" onClick={()=>setPage('Leads')}>View all</button></div>
+   <div className="panel"><div className="panel-head"><div><h2>Follow-ups due</h2><p>Leads that need attention</p></div><button className="textbtn" onClick={()=>setPage('Leads')}>View all</button></div>
 
-    <div className="mini-list">{leads.slice(0,3).map(l=><button key={l.id} className="mini" onClick={()=>setSelected(l)}><div className="person">{l.name.split(' ').map(x=>x[0]).join('')}</div><div><strong>{l.name}</strong><span>{l.company}</span></div><time>{l.last}</time></button>)}</div>
+    <div className="mini-list">{leads.slice(0,3).map(l=><button key={l.id} className="mini" onClick={()=>setSelected(l)}><div className="person">{l.name.split(' ').map(x=>x[0]).join('')}</div><div><strong>{l.name}</strong><span>{l.company}</span></div><time>{l.last}</time></button>)}</div>
 
-   </div>
+   </div>
 
-  </div>
+  </div>
 
-  <div className="panel recent"><div className="panel-head"><div><h2>Recent leads</h2><p>Your latest prospects</p></div><button className="textbtn" onClick={()=>setPage('Leads')}>View all leads →</button></div>
+  <div className="panel recent"><div className="panel-head"><div><h2>Recent leads</h2><p>Your latest prospects</p></div><button className="textbtn" onClick={()=>setPage('Leads')}>View all leads →</button></div>
 
-   <table><thead><tr><th>Lead</th><th>Status</th><th>Score</th><th>Last activity</th><th></th></tr></thead><tbody>{leads.map(l=><tr key={l.id}><td><div className="leadcell"><div className="person">{l.name.split(' ').map(x=>x[0]).join('')}</div><div><strong>{l.name}</strong><span>{l.company}</span></div></div></td><td><span className={'pill '+l.status.toLowerCase().replace(' ','-')}>{l.status}</span></td><td><b>{l.score}</b>/100</td><td>{l.last}</td><td><button className="arrow" onClick={()=>setSelected(l)}><ArrowUpRight/></button></td></tr>)}</tbody></table>
+   <table><thead><tr><th>Lead</th><th>Status</th><th>Score</th><th>Last activity</th><th></th></tr></thead><tbody>{leads.map(l=><tr key={l.id}><td><div className="leadcell"><div className="person">{l.name.split(' ').map(x=>x[0]).join('')}</div><div><strong>{l.name}</strong><span>{l.company}</span></div></div></td><td><span className={'pill '+l.status.toLowerCase().replace(' ','-')}>{l.status}</span></td><td><b>{l.score}</b>/100</td><td>{l.last}</td><td><button className="arrow" onClick={()=>setSelected(l)}><ArrowUpRight/></button></td></tr>)}</tbody></table>
 
-  </div>
+  </div>
 
- </section>
+ </section>
 
 }
 
@@ -170,1241 +171,1461 @@ function Stat({title,value,change,icon:I}){return <div className="stat"><div cla
 
 function Leads({leads,setLeads,setSelected,session}){
 
-  const [open,setOpen]=useState(false);
+  const [open,setOpen]=useState(false);
 
-  const [name,setName]=useState('');
+  const [name,setName]=useState('');
 
-  const [company,setCompany]=useState('');
+  const [company,setCompany]=useState('');
 
-  const [email,setEmail]=useState('');
+  const [email,setEmail]=useState('');
 
-  const [phone,setPhone]=useState('');
+  const [phone,setPhone]=useState('');
 
-  const [requirement,setRequirement]=useState('');
+  const [requirement,setRequirement]=useState('');
 
-  const [budget,setBudget]=useState('');
+  const [budget,setBudget]=useState('');
 
-  const add=async e=>{
+  const add=async e=>{
 
-    e.preventDefault();
+    e.preventDefault();
 
-    if(!name)return;
+    if(!name)return;
 
-    const item={
+    const item={
 
-      name,
+      name,
 
-      company,
+      company,
 
-      email,
+      email,
 
-      phone,
+      phone,
 
-      requirement,
+      requirement,
 
-      budget,
+      budget,
 
-      status:'New',
+      status:'New',
 
-      score:50,
+      score:50,
 
-      last:'Just now'
+      last:'Just now'
 
-    };
+    };
 
-    if(supabase&&session){
+    if(supabase&&session){
 
-      const {data,error}=await supabase
+      const {data,error}=await supabase
 
-        .from('leads')
+        .from('leads')
 
-        .insert({
+        .insert({
 
-          user_id:session.user.id,
+          user_id:session.user.id,
 
-          name,
+          name,
 
-          company,
+          company,
 
-          email,
+          email,
 
-          phone,
+          phone,
 
-          requirement,
+          requirement,
 
-          budget
+          budget
 
-        })
+        })
 
-        .select()
+        .select()
 
-        .single();
+        .single();
 
-      if(!error&&data){
+      if(!error&&data){
 
-        setLeads([
+        setLeads([
 
-          {
+          {
 
-            ...data,
+            ...data,
 
-            last:'Just now'
+            last:'Just now'
 
-          },
+          },
 
-          ...leads
+          ...leads
 
-        ]);
+        ]);
 
-        setName('');
+        setName('');
 
-        setCompany('');
+        setCompany('');
 
-        setEmail('');
+        setEmail('');
 
-        setPhone('');
+        setPhone('');
 
-        setRequirement('');
+        setRequirement('');
 
-        setBudget('');
+        setBudget('');
 
-        setOpen(false);
+        setOpen(false);
 
-        return;
+        return;
 
-      }
+      }
 
-      if(error){
+      if(error){
 
-        console.error('Failed to add lead:',error);
+        console.error('Failed to add lead:',error);
 
-      }
+      }
 
-    }
+    }
 
-    setLeads([item,...leads]);
+    setLeads([item,...leads]);
 
-    setName('');
+    setName('');
 
-    setCompany('');
+    setCompany('');
 
-    setEmail('');
+    setEmail('');
 
-    setPhone('');
+    setPhone('');
 
-    setRequirement('');
+    setRequirement('');
 
-    setBudget('');
+    setBudget('');
 
-    setOpen(false);
+    setOpen(false);
 
-  };
+  };
 
-  return (
+  return (
 
-    <section className="content">
+    <section className="content">
 
-      <div className="page-title">
+      <div className="page-title">
 
-        <div>
+        <div>
 
-          <h1>Leads</h1>
+          <h1>Leads</h1>
 
-          <p>Manage and qualify your prospects.</p>
+          <p>Manage and qualify your prospects.</p>
 
-        </div>
+        </div>
 
-        <button
+        <button
 
-          className="primary"
+          className="primary"
 
-          onClick={()=>setOpen(true)}
+          onClick={()=>setOpen(true)}
 
-        >
+        >
 
-          <Plus size={17}/>
+          <Plus size={17}/>
 
-          Add lead
+          Add lead
 
-        </button>
+        </button>
 
-      </div>
+      </div>
 
-      <div
+      <div
 
-        className="modal-bg"
+        className="modal-bg"
 
-        style={{display:open?"grid":"none"}}
+        style={{display:open?"grid":"none"}}
 
-        onClick={()=>setOpen(false)}
+        onClick={()=>setOpen(false)}
 
-      >
+      >
 
-        <div
+        <div
 
-          className="modal"
+          className="modal"
 
-          onClick={e=>e.stopPropagation()}
+          onClick={e=>e.stopPropagation()}
 
-        >
+        >
 
-          <button
+          <button
 
-            className="modal-close"
+            className="modal-close"
 
-            onClick={()=>setOpen(false)}
+            onClick={()=>setOpen(false)}
 
-          >
+          >
 
-            <X/>
+            <X/>
 
-          </button>
+          </button>
 
-          <h2>Add a lead</h2>
+          <h2>Add a lead</h2>
 
-          <form onSubmit={add}>
+          <form onSubmit={add}>
 
-            <label>
+            <label>
 
-              Name
+              Name
 
-              <input
+              <input
 
-                value={name}
+                value={name}
 
-                onChange={e=>setName(e.target.value)}
+                onChange={e=>setName(e.target.value)}
 
-                placeholder="Full name"
+                placeholder="Full name"
 
-                required
+                required
 
-              />
+              />
 
-            </label>
+            </label>
 
-            <label>
+            <label>
 
-              Company
+              Company
 
-              <input
+              <input
 
-                value={company}
+                value={company}
 
-                onChange={e=>setCompany(e.target.value)}
+                onChange={e=>setCompany(e.target.value)}
 
-                placeholder="Company"
+                placeholder="Company"
 
-              />
+              />
 
-            </label>
+            </label>
 
-            <label>
+            <label>
 
-              Email
+              Email
 
-              <input
+              <input
 
-                type="email"
+                type="email"
 
-                value={email}
+                value={email}
 
-                onChange={e=>setEmail(e.target.value)}
+                onChange={e=>setEmail(e.target.value)}
 
-                placeholder="Email"
+                placeholder="Email"
 
-              />
+              />
 
-            </label>
+            </label>
 
-            <label>
+            <label>
 
-              Phone
+              Phone
 
-              <input
+              <input
 
-                value={phone}
+                value={phone}
 
-                onChange={e=>setPhone(e.target.value)}
+                onChange={e=>setPhone(e.target.value)}
 
-                placeholder="+91 98765 43210"
+                placeholder="+91 98765 43210"
 
-              />
+              />
 
-            </label>
+            </label>
 
-            <label>
+            <label>
 
-              Requirement
+              Requirement
 
-              <textarea
+              <textarea
 
-                value={requirement}
+                value={requirement}
 
-                onChange={e=>setRequirement(e.target.value)}
+                onChange={e=>setRequirement(e.target.value)}
 
-                placeholder="What does the lead need?"
+                placeholder="What does the lead need?"
 
-                rows="3"
+                rows="3"
 
-                style={{height:'80px',minHeight:'80px',resize:'vertical'}}
+                style={{height:'80px',minHeight:'80px',resize:'vertical'}}
 
-              />
+              />
 
-            </label>
+            </label>
 
-            <label>
+            <label>
 
-              Budget
+              Budget
 
-              <input
+              <input
 
-                value={budget}
+                value={budget}
 
-                onChange={e=>setBudget(e.target.value)}
+                onChange={e=>setBudget(e.target.value)}
 
-                placeholder="₹50,000"
+                placeholder="₹50,000"
 
-              />
+              />
 
-            </label>
+            </label>
 
-            <button
+            <button
 
-              className="primary full"
+              className="primary full"
 
-              type="submit"
+              type="submit"
 
-            >
+            >
 
-              Add lead
+              Add lead
 
-            </button>
+            </button>
 
-          </form>
+          </form>
 
-        </div>
+        </div>
 
-      </div>
+      </div>
 
-      <div className="toolbar">
+      <div className="toolbar">
 
-        <div className="search">
+        <div className="search">
 
-          <Search size={17}/>
+          <Search size={17}/>
 
-          <input placeholder="Search leads..."/>
+          <input placeholder="Search leads..."/>
 
-        </div>
+        </div>
 
-        <button>All statuses ▾</button>
+        <button>All statuses ▾</button>
 
-        <button>Sort: Recent ▾</button>
+        <button>Sort: Recent ▾</button>
 
-      </div>
+      </div>
 
-      <div className="panel">
+      <div className="panel">
 
-        <table>
+        <table>
 
-          <thead>
+          <thead>
 
-            <tr>
+            <tr>
 
-              <th>Lead</th>
+              <th>Lead</th>
 
-              <th>Email</th>
+              <th>Email</th>
 
-              <th>Status</th>
+              <th>Status</th>
 
-              <th>AI score</th>
+              <th>AI score</th>
 
-              <th>Activity</th>
+              <th>Activity</th>
 
-              <th></th>
+              <th></th>
 
-            </tr>
+            </tr>
 
-          </thead>
+          </thead>
 
-          <tbody>
+          <tbody>
 
-            {leads.map(l=>(
+            {leads.map(l=>(
 
-              <tr key={l.id}>
+              <tr key={l.id}>
 
-                <td>
+                <td>
 
-                  <div className="leadcell">
+                  <div className="leadcell">
 
-                    <div className="person">
+                    <div className="person">
 
-                      {l.name
+                      {l.name
 
-                        .split(' ')
+                        .split(' ')
 
-                        .map(x=>x[0])
+                        .map(x=>x[0])
 
-                        .join('')}
+                        .join('')}
 
-                    </div>
+                    </div>
 
-                    <div>
+                    <div>
 
-                      <strong>{l.name}</strong>
+                      <strong>{l.name}</strong>
 
-                      <span>{l.company}</span>
+                      <span>{l.company}</span>
 
-                    </div>
+                    </div>
 
-                  </div>
+                  </div>
 
-                </td>
+                </td>
 
-                <td>{l.email}</td>
+                <td>{l.email}</td>
 
-                <td>
+                <td>
 
-                  <span
+                  <span
 
-                    className={
+                    className={
 
-                      'pill '+
+                      'pill '+
 
-                      l.status
+                      l.status
 
-                        .toLowerCase()
+                        .toLowerCase()
 
-                        .replace(' ','-')
+                        .replace(' ','-')
 
-                    }
+                    }
 
-                  >
+                  >
 
-                    {l.status}
+                    {l.status}
 
-                  </span>
+                  </span>
 
-                </td>
+                </td>
 
-                <td>
+                <td>
 
-                  <b>{l.score}</b>/100
+                  <b>{l.score}</b>/100
 
-                </td>
+                </td>
 
-                <td>{l.last}</td>
+                <td>{l.last}</td>
 
-                <td>
+                <td>
 
-                  <button
+                  <button
 
-                    className="arrow"
+                    className="arrow"
 
-                    onClick={()=>setSelected(l)}
+                    onClick={()=>setSelected(l)}
 
-                  >
+                  >
 
-                    <ArrowUpRight/>
+                    <ArrowUpRight/>
 
-                  </button>
+                  </button>
 
-                </td>
+                </td>
 
-              </tr>
+              </tr>
 
-            ))}
+            ))}
 
-          </tbody>
+          </tbody>
 
-        </table>
+        </table>
 
-      </div>
+      </div>
 
-    </section>
+    </section>
 
-  );
+  );
 
 }
 
 function Followups({leads,session,setLeads}){
-  const [tone,setTone]=useState('Professional');
-  const [selectedLeadId,setSelectedLeadId]=useState('');
-  const [context,setContext]=useState('They showed interest in our lead automation platform.');
-  const [text,setText]=useState('Select a lead and click "Generate with AI" to create a personalized follow-up.');
-  const [loading,setLoading]=useState(false);
-  const [sending,setSending]=useState(false);
-  const [sent,setSent]=useState(false);
-  const [error,setError]=useState('');
-  const [success,setSuccess]=useState('');
-  const [history,setHistory]=useState([]);
-  const [historyLoading,setHistoryLoading]=useState(false);
-  const [scheduled,setScheduled]=useState([]);
-  const [scheduledLoading,setScheduledLoading]=useState(false);
-  const [scheduleOption,setScheduleOption]=useState('tomorrow');
 
-  const selectedLead=leads.find(lead=>String(lead.id)===String(selectedLeadId))||leads[0];
+  const [tone,setTone]=useState('Professional');
 
-  useEffect(()=>{
-    if(leads.length>0&&!selectedLeadId)setSelectedLeadId(String(leads[0].id));
-  },[leads,selectedLeadId]);
+  const [selectedLeadId,setSelectedLeadId]=useState('');
 
-  const loadHistory=async(leadId=selectedLead?.id)=>{
-    if(!supabase||!session?.user?.id||!leadId||String(leadId).startsWith('demo-')){
-      setHistory([]);
-      return;
-    }
-    setHistoryLoading(true);
-    try{
-      const {data:conversation,error:conversationError}=await supabase.from('conversations').select('id').eq('user_id',session.user.id).eq('lead_id',leadId).maybeSingle();
-      if(conversationError)throw conversationError;
-      if(!conversation){setHistory([]);return;}
-      const {data,error:messageError}=await supabase.from('messages').select('id,sender,content,status,created_at').eq('conversation_id',conversation.id).eq('user_id',session.user.id).order('created_at',{ascending:false});
-      if(messageError)throw messageError;
-      setHistory(data||[]);
-    }catch(err){
-      console.error('Load follow-up history error:',err);
-      setHistory([]);
-    }finally{setHistoryLoading(false);}
-  };
+  const [context,setContext]=useState('They showed interest in our lead automation platform.');
 
-  const loadScheduled=async(leadId=selectedLead?.id)=>{
-    if(!supabase||!session?.user?.id||!leadId||String(leadId).startsWith('demo-')){
-      setScheduled([]);
-      return;
-    }
-    setScheduledLoading(true);
-    try{
-      const {data,error}=await supabase.from('scheduled_followups').select('id,message,scheduled_for,status,created_at').eq('user_id',session.user.id).eq('lead_id',leadId).order('scheduled_for',{ascending:true});
-      if(error)throw error;
-      setScheduled(data||[]);
-    }catch(err){
-      console.error('Load scheduled follow-ups error:',err);
-      setScheduled([]);
-    }finally{setScheduledLoading(false);}
-  };
+  const [text,setText]=useState('Select a lead and click "Generate with AI" to create a personalized follow-up.');
 
-  useEffect(()=>{
-    setHistory([]);
-    setScheduled([]);
-    if(selectedLead?.id){
-      loadHistory(selectedLead.id);
-      loadScheduled(selectedLead.id);
-    }
-  },[selectedLead?.id,session?.user?.id]);
+  const [loading,setLoading]=useState(false);
 
-  const generateFollowup=async()=>{
-    if(!selectedLead){setError('Please add a lead first.');return;}
-    setLoading(true);
-    setSent(false);
-    setError('');
-    setSuccess('');
-    try{
-      const response=await fetch('http://localhost:5000/api/ai/follow-up',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          name:selectedLead.name,
-          business:selectedLead.company,
-          requirement:selectedLead.requirement||selectedLead.notes||context||'Potential customer interested in our service.',
-          budget:selectedLead.budget||'Not provided',
-          tone,
-          qualificationStatus:selectedLead.status||'New',
-          qualificationScore:selectedLead.score??50,
-          additionalContext:context
-        })
-      });
-      const data=await response.json();
-      if(!response.ok||!data.success)throw new Error(data.error||'Failed to generate follow-up.');
-      if(!data.message||!data.message.trim())throw new Error('AI generated an empty message. Please try again.');
-      setText(data.message.trim());
-    }catch(err){
-      console.error('AI follow-up error:',err);
-      setError(err.message||'Unable to generate the follow-up. Please try again.');
-    }finally{setLoading(false);}
-  };
+  const [sending,setSending]=useState(false);
 
-  const getScheduleDate=()=>{
-    const days={tomorrow:1,twoDays:2,threeDays:3,sevenDays:7};
-    const date=new Date();
-    date.setDate(date.getDate()+(days[scheduleOption]||1));
-    date.setHours(9,0,0,0);
-    return date;
-  };
+  const [sent,setSent]=useState(false);
 
-  const scheduleFollowup=async()=>{
-    if(!selectedLead){setError('Please select a lead first.');return;}
-    const cleanMessage=text.trim();
-    if(!cleanMessage||cleanMessage.startsWith('Select a lead and click')){setError('Generate a follow-up message first.');return;}
-    if(!selectedLead.email){setError('This lead does not have an email address.');return;}
-    if(!supabase||!session){setError('You must be signed in to schedule a follow-up.');return;}
-    setSending(true);
-    setError('');
-    setSuccess('');
-    try{
-      const scheduledFor=getScheduleDate().toISOString();
-      const {error:scheduleError}=await supabase.from('scheduled_followups').insert({
-        user_id:session.user.id,
-        lead_id:selectedLead.id,
-        message:cleanMessage,
-        scheduled_for:scheduledFor,
-        status:'scheduled'
-      });
-      if(scheduleError)throw scheduleError;
-      setSuccess(`Follow-up scheduled for ${getScheduleDate().toLocaleString()}.`);
-      setText('Select a lead and click "Generate with AI" to create a personalized follow-up.');
-      setSent(false);
-      await loadScheduled(selectedLead.id);
-    }catch(err){
-      console.error('Schedule follow-up error:',err);
-      setError(err.message||'Failed to schedule the follow-up.');
-    }finally{setSending(false);}
-  };
+  const [error,setError]=useState('');
 
-  const cancelScheduled=async(id)=>{
-    if(!supabase||!session)return;
-    try{
-      const {error}=await supabase.from('scheduled_followups').update({status:'cancelled'}).eq('id',id).eq('user_id',session.user.id);
-      if(error)throw error;
-      await loadScheduled(selectedLead?.id);
-    }catch(err){
-      console.error('Cancel scheduled follow-up error:',err);
-      setError(err.message||'Failed to cancel the scheduled follow-up.');
-    }
-  };
+  const [success,setSuccess]=useState('');
 
-  const sendFollowup=async()=>{
-    if(!selectedLead){setError('Please select a lead first.');return;}
-    const cleanMessage=text.trim();
-    if(!cleanMessage||cleanMessage.startsWith('Select a lead and click')){setError('Generate a follow-up message first.');return;}
-    if(!selectedLead.email){setError('This lead does not have an email address.');return;}
-    if(!supabase||!session){setError('You must be signed in to send a follow-up.');return;}
-    if(sent){setError('This follow-up has already been sent.');return;}
-    setSending(true);
-    setError('');
-    setSuccess('');
-    let messageId=null;
-    try{
-      const {data:conversation,error:conversationError}=await supabase.from('conversations').upsert({user_id:session.user.id,lead_id:selectedLead.id,updated_at:new Date().toISOString()},{onConflict:'user_id,lead_id'}).select().single();
-      if(conversationError)throw conversationError;
-      const {data:existingMessages,error:duplicateError}=await supabase.from('messages').select('id').eq('conversation_id',conversation.id).eq('user_id',session.user.id).eq('content',cleanMessage).eq('status','sent').limit(1);
-      if(duplicateError)throw duplicateError;
-      if(existingMessages?.length>0){
-        setSent(true);
-        setSuccess('This exact follow-up has already been sent to this lead.');
-        await loadHistory(selectedLead.id);
-        return;
-      }
-      const {data:message,error:messageError}=await supabase.from('messages').insert({conversation_id:conversation.id,user_id:session.user.id,sender:'ai',content:cleanMessage,status:'draft'}).select().single();
-      if(messageError)throw messageError;
-      messageId=message.id;
-      const emailResponse=await fetch('http://localhost:5000/api/email/send-follow-up',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({to:selectedLead.email,leadName:selectedLead.name,subject:'Following up on your enquiry',message:cleanMessage})
-      });
-      const emailData=await emailResponse.json();
-      if(!emailResponse.ok||!emailData.success)throw new Error(emailData.error||'Failed to send the email.');
-      const {error:statusError}=await supabase.from('messages').update({status:'sent'}).eq('id',messageId).eq('user_id',session.user.id);
-      if(statusError)throw statusError;
-      const now=new Date().toISOString();
-      await supabase.from('conversations').update({updated_at:now}).eq('id',conversation.id).eq('user_id',session.user.id);
-      const {error:leadError}=await supabase.from('leads').update({status:'Follow-up',last_activity:now}).eq('id',selectedLead.id).eq('user_id',session.user.id);
-      if(leadError)throw leadError;
-      if(setLeads)setLeads(currentLeads=>currentLeads.map(lead=>lead.id===selectedLead.id?{...lead,status:'Follow-up',last_activity:now,last:'Just now'}:lead));
-      setSent(true);
-      setSuccess(`Follow-up email sent to ${selectedLead.name}.`);
-      await loadHistory(selectedLead.id);
-    }catch(err){
-      console.error('Send follow-up error:',err);
-      if(messageId&&supabase&&session)await supabase.from('messages').update({status:'failed'}).eq('id',messageId).eq('user_id',session.user.id);
-      setError(err.message||'Failed to send the follow-up email. Please try again.');
-      await loadHistory(selectedLead.id);
-    }finally{setSending(false);}
-  };
+  const [history,setHistory]=useState([]);
 
-  return <section className="content">
-    <div className="page-title"><div><h1>AI Follow-ups</h1><p>Generate personalized messages for your leads in seconds.</p></div></div>
-    <div className="ai-grid">
-      <div className="panel">
-        <div className="ai-head"><div className="spark"><Sparkles/></div><div><h2>Create a follow-up</h2><p>AI will personalize the message using your lead context.</p></div></div>
-        <label>Lead<select value={selectedLeadId} onChange={e=>{setSelectedLeadId(e.target.value);setSent(false);setError('');setSuccess('');setText('Select a lead and click "Generate with AI" to create a personalized follow-up.');}} disabled={loading||sending}>{leads.length===0?<option value="">No leads available</option>:leads.map(lead=><option key={lead.id} value={lead.id}>{lead.name} — {lead.company||'No company'}</option>)}</select></label>
-        <label>Tone<div className="tone">{['Professional','Friendly','Short & direct'].map(x=><button type="button" key={x} className={tone===x?'selected':''} onClick={()=>{setTone(x);setSent(false);setSuccess('');}} disabled={loading||sending}>{x}</button>)}</div></label>
-        <label>Context<textarea value={context} onChange={e=>{setContext(e.target.value);setSent(false);setSuccess('');}} placeholder="What should the AI mention?" disabled={loading||sending}/></label>
-        {error&&<div className="auth-error">{error}</div>}
-        {success&&<div style={{padding:'12px',borderRadius:'10px',background:'#ecfdf5',color:'#047857',fontSize:'13px',marginBottom:'12px'}}>{success}</div>}
-        <button className="primary generate" onClick={generateFollowup} disabled={loading||sending||!selectedLead}><Sparkles size={17}/>{loading?'Generating...':'Generate with AI'}</button>
-      </div>
-      <div className="panel preview">
-        <div className="panel-head"><div><h2>Generated message</h2><p>Ready to review and send</p></div><span className="ai-badge">AI generated</span></div>
-        <div className="messagebox">{text.split('\n').map((x,i)=><div key={i}>{x||'\u00A0'}</div>)}</div>
-        <div className="preview-actions">
-          <button type="button" onClick={generateFollowup} disabled={loading||sending||!selectedLead}>{loading?'Generating...':'Regenerate'}</button>
-          <button type="button" className="primary" onClick={sendFollowup} disabled={sending||loading||!selectedLead||!text.trim()||text.startsWith('Select a lead and click')||sent}><Send size={16}/>{sending?'Sending...':sent?'Sent ✓':'Send follow-up'}</button>
-        </div>
-        <div style={{marginTop:'16px',paddingTop:'16px',borderTop:'1px solid #e5e7eb'}}>
-          <label>Schedule follow-up
-            <select value={scheduleOption} onChange={e=>setScheduleOption(e.target.value)} disabled={loading||sending}>
-              <option value="tomorrow">Tomorrow at 9:00 AM</option>
-              <option value="twoDays">In 2 days at 9:00 AM</option>
-              <option value="threeDays">In 3 days at 9:00 AM</option>
-              <option value="sevenDays">In 7 days at 9:00 AM</option>
-            </select>
-          </label>
-          <button type="button" className="primary" onClick={scheduleFollowup} disabled={sending||loading||!selectedLead||!text.trim()||text.startsWith('Select a lead and click')}><Clock3 size={16}/>{sending?'Saving...':'Schedule follow-up'}</button>
-          <p style={{fontSize:'12px',color:'#6b7280',marginTop:'8px'}}>The message will be stored and sent automatically when the scheduler is connected.</p>
-        </div>
-      </div>
-    </div>
-    <div className="panel" style={{marginTop:'16px'}}>
-      <div className="panel-head"><div><h2>Scheduled follow-ups</h2><p>Upcoming messages for {selectedLead?.name||'this lead'}.</p></div>{selectedLead&&<span className="ai-badge">{scheduled.filter(x=>x.status==='scheduled').length} scheduled</span>}</div>
-      {scheduledLoading?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>Loading scheduled follow-ups...</div>:scheduled.length===0?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>No scheduled follow-ups for this lead.</div>:<div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{scheduled.map(item=><div key={item.id} style={{padding:'14px',border:'1px solid #e5e7eb',borderRadius:'12px',background:'#fff'}}>
-        <div style={{display:'flex',justifyContent:'space-between',gap:'12px',alignItems:'center',marginBottom:'8px'}}><strong>{new Date(item.scheduled_for).toLocaleString()}</strong><span style={{padding:'4px 8px',borderRadius:'999px',fontSize:'11px',fontWeight:600,background:item.status==='scheduled'?'#eff6ff':item.status==='cancelled'?'#f3f4f6':'#ecfdf5',color:item.status==='scheduled'?'#1d4ed8':item.status==='cancelled'?'#6b7280':'#047857'}}>{item.status}</span></div>
-        <div style={{whiteSpace:'pre-wrap',lineHeight:1.55,fontSize:'14px',color:'#374151'}}>{item.message}</div>
-        {item.status==='scheduled'&&<button type="button" onClick={()=>cancelScheduled(item.id)} style={{marginTop:'10px',border:0,background:'transparent',color:'#b91c1c',cursor:'pointer',fontSize:'12px',fontWeight:600}}>Cancel schedule</button>}
-      </div>)}</div>}
-    </div>
-    <div className="panel" style={{marginTop:'16px'}}>
-      <div className="panel-head"><div><h2>Follow-up history</h2><p>{selectedLead?`Previous messages sent to ${selectedLead.name}.`:'Select a lead to view previous follow-ups.'}</p></div>{selectedLead&&<span className="ai-badge">{history.length} {history.length===1?'message':'messages'}</span>}</div>
-      {historyLoading?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>Loading follow-up history...</div>:history.length===0?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>No follow-ups have been sent to this lead yet.</div>:<div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{history.map(message=>{const status=message.status||'sent';const statusStyles={sent:{background:'#ecfdf5',color:'#047857'},failed:{background:'#fef2f2',color:'#b91c1c'},draft:{background:'#f3f4f6',color:'#4b5563'},delivered:{background:'#eff6ff',color:'#1d4ed8'}};const badge=statusStyles[status]||statusStyles.draft;return <div key={message.id} style={{padding:'14px',border:'1px solid #e5e7eb',borderRadius:'12px',background:'#fff'}}><div style={{display:'flex',justifyContent:'space-between',gap:'12px',alignItems:'center',marginBottom:'8px'}}><strong>{message.sender==='ai'?'LeadPilot AI':message.sender==='lead'?selectedLead?.name||'Lead':'You'}</strong><span style={{...badge,padding:'4px 8px',borderRadius:'999px',fontSize:'11px',fontWeight:600}}>{status}</span></div><div style={{whiteSpace:'pre-wrap',lineHeight:1.55,fontSize:'14px',color:'#374151'}}>{message.content}</div><div style={{marginTop:'8px',fontSize:'12px',color:'#9ca3af'}}>{new Date(message.created_at).toLocaleString()}</div></div>})}</div>}
-    </div>
-  </section>;
+  const [historyLoading,setHistoryLoading]=useState(false);
+
+  const [scheduled,setScheduled]=useState([]);
+
+  const [scheduledLoading,setScheduledLoading]=useState(false);
+
+  const [scheduleOption,setScheduleOption]=useState('tomorrow');
+
+  const selectedLead=leads.find(lead=>String(lead.id)===String(selectedLeadId))||leads[0];
+
+  useEffect(()=>{
+
+    if(leads.length>0&&!selectedLeadId)setSelectedLeadId(String(leads[0].id));
+
+  },[leads,selectedLeadId]);
+
+  const loadHistory=async(leadId=selectedLead?.id)=>{
+
+    if(!supabase||!session?.user?.id||!leadId||String(leadId).startsWith('demo-')){
+
+      setHistory([]);
+
+      return;
+
+    }
+
+    setHistoryLoading(true);
+
+    try{
+
+      const {data:conversation,error:conversationError}=await supabase.from('conversations').select('id').eq('user_id',session.user.id).eq('lead_id',leadId).maybeSingle();
+
+      if(conversationError)throw conversationError;
+
+      if(!conversation){setHistory([]);return;}
+
+      const {data,error:messageError}=await supabase.from('messages').select('id,sender,content,status,created_at').eq('conversation_id',conversation.id).eq('user_id',session.user.id).order('created_at',{ascending:false});
+
+      if(messageError)throw messageError;
+
+      setHistory(data||[]);
+
+    }catch(err){
+
+      console.error('Load follow-up history error:',err);
+
+      setHistory([]);
+
+    }finally{setHistoryLoading(false);}
+
+  };
+
+  const loadScheduled=async(leadId=selectedLead?.id)=>{
+
+    if(!supabase||!session?.user?.id||!leadId||String(leadId).startsWith('demo-')){
+
+      setScheduled([]);
+
+      return;
+
+    }
+
+    setScheduledLoading(true);
+
+    try{
+
+      const {data,error}=await supabase.from('scheduled_followups').select('id,message,scheduled_for,status,created_at').eq('user_id',session.user.id).eq('lead_id',leadId).order('scheduled_for',{ascending:true});
+
+      if(error)throw error;
+
+      setScheduled(data||[]);
+
+    }catch(err){
+
+      console.error('Load scheduled follow-ups error:',err);
+
+      setScheduled([]);
+
+    }finally{setScheduledLoading(false);}
+
+  };
+
+  useEffect(()=>{
+
+    setHistory([]);
+
+    setScheduled([]);
+
+    if(selectedLead?.id){
+
+      loadHistory(selectedLead.id);
+
+      loadScheduled(selectedLead.id);
+
+    }
+
+  },[selectedLead?.id,session?.user?.id]);
+
+  const generateFollowup=async()=>{
+
+    if(!selectedLead){setError('Please add a lead first.');return;}
+
+    setLoading(true);
+
+    setSent(false);
+
+    setError('');
+
+    setSuccess('');
+
+    try{
+
+      const response=await fetch(`${API_URL}/api/ai/follow-up`,{
+
+        method:'POST',
+
+        headers:{'Content-Type':'application/json'},
+
+        body:JSON.stringify({
+
+          name:selectedLead.name,
+
+          business:selectedLead.company,
+
+          requirement:selectedLead.requirement||selectedLead.notes||context||'Potential customer interested in our service.',
+
+          budget:selectedLead.budget||'Not provided',
+
+          tone,
+
+          qualificationStatus:selectedLead.status||'New',
+
+          qualificationScore:selectedLead.score??50,
+
+          additionalContext:context
+
+        })
+
+      });
+
+      const data=await response.json();
+
+      if(!response.ok||!data.success)throw new Error(data.error||'Failed to generate follow-up.');
+
+      if(!data.message||!data.message.trim())throw new Error('AI generated an empty message. Please try again.');
+
+      setText(data.message.trim());
+
+    }catch(err){
+
+      console.error('AI follow-up error:',err);
+
+      setError(err.message||'Unable to generate the follow-up. Please try again.');
+
+    }finally{setLoading(false);}
+
+  };
+
+  const getScheduleDate=()=>{
+
+    const days={tomorrow:1,twoDays:2,threeDays:3,sevenDays:7};
+
+    const date=new Date();
+
+    date.setDate(date.getDate()+(days[scheduleOption]||1));
+
+    date.setHours(9,0,0,0);
+
+    return date;
+
+  };
+
+  const scheduleFollowup=async()=>{
+
+    if(!selectedLead){setError('Please select a lead first.');return;}
+
+    const cleanMessage=text.trim();
+
+    if(!cleanMessage||cleanMessage.startsWith('Select a lead and click')){setError('Generate a follow-up message first.');return;}
+
+    if(!selectedLead.email){setError('This lead does not have an email address.');return;}
+
+    if(!supabase||!session){setError('You must be signed in to schedule a follow-up.');return;}
+
+    setSending(true);
+
+    setError('');
+
+    setSuccess('');
+
+    try{
+
+      const scheduledFor=getScheduleDate().toISOString();
+
+      const {error:scheduleError}=await supabase.from('scheduled_followups').insert({
+
+        user_id:session.user.id,
+
+        lead_id:selectedLead.id,
+
+        message:cleanMessage,
+
+        scheduled_for:scheduledFor,
+
+        status:'scheduled'
+
+      });
+
+      if(scheduleError)throw scheduleError;
+
+      setSuccess(`Follow-up scheduled for ${getScheduleDate().toLocaleString()}.`);
+
+      setText('Select a lead and click "Generate with AI" to create a personalized follow-up.');
+
+      setSent(false);
+
+      await loadScheduled(selectedLead.id);
+
+    }catch(err){
+
+      console.error('Schedule follow-up error:',err);
+
+      setError(err.message||'Failed to schedule the follow-up.');
+
+    }finally{setSending(false);}
+
+  };
+
+  const cancelScheduled=async(id)=>{
+
+    if(!supabase||!session)return;
+
+    try{
+
+      const {error}=await supabase.from('scheduled_followups').update({status:'cancelled'}).eq('id',id).eq('user_id',session.user.id);
+
+      if(error)throw error;
+
+      await loadScheduled(selectedLead?.id);
+
+    }catch(err){
+
+      console.error('Cancel scheduled follow-up error:',err);
+
+      setError(err.message||'Failed to cancel the scheduled follow-up.');
+
+    }
+
+  };
+
+  const sendFollowup=async()=>{
+
+    if(!selectedLead){setError('Please select a lead first.');return;}
+
+    const cleanMessage=text.trim();
+
+    if(!cleanMessage||cleanMessage.startsWith('Select a lead and click')){setError('Generate a follow-up message first.');return;}
+
+    if(!selectedLead.email){setError('This lead does not have an email address.');return;}
+
+    if(!supabase||!session){setError('You must be signed in to send a follow-up.');return;}
+
+    if(sent){setError('This follow-up has already been sent.');return;}
+
+    setSending(true);
+
+    setError('');
+
+    setSuccess('');
+
+    let messageId=null;
+
+    try{
+
+      const {data:conversation,error:conversationError}=await supabase.from('conversations').upsert({user_id:session.user.id,lead_id:selectedLead.id,updated_at:new Date().toISOString()},{onConflict:'user_id,lead_id'}).select().single();
+
+      if(conversationError)throw conversationError;
+
+      const {data:existingMessages,error:duplicateError}=await supabase.from('messages').select('id').eq('conversation_id',conversation.id).eq('user_id',session.user.id).eq('content',cleanMessage).eq('status','sent').limit(1);
+
+      if(duplicateError)throw duplicateError;
+
+      if(existingMessages?.length>0){
+
+        setSent(true);
+
+        setSuccess('This exact follow-up has already been sent to this lead.');
+
+        await loadHistory(selectedLead.id);
+
+        return;
+
+      }
+
+      const {data:message,error:messageError}=await supabase.from('messages').insert({conversation_id:conversation.id,user_id:session.user.id,sender:'ai',content:cleanMessage,status:'draft'}).select().single();
+
+      if(messageError)throw messageError;
+
+      messageId=message.id;
+
+      const emailResponse=await fetch(`${API_URL}/api/email/send-follow-up`,{
+
+        method:'POST',
+
+        headers:{'Content-Type':'application/json'},
+
+        body:JSON.stringify({to:selectedLead.email,leadName:selectedLead.name,subject:'Following up on your enquiry',message:cleanMessage})
+
+      });
+
+      const emailData=await emailResponse.json();
+
+      if(!emailResponse.ok||!emailData.success)throw new Error(emailData.error||'Failed to send the email.');
+
+      const {error:statusError}=await supabase.from('messages').update({status:'sent'}).eq('id',messageId).eq('user_id',session.user.id);
+
+      if(statusError)throw statusError;
+
+      const now=new Date().toISOString();
+
+      await supabase.from('conversations').update({updated_at:now}).eq('id',conversation.id).eq('user_id',session.user.id);
+
+      const {error:leadError}=await supabase.from('leads').update({status:'Follow-up',last_activity:now}).eq('id',selectedLead.id).eq('user_id',session.user.id);
+
+      if(leadError)throw leadError;
+
+      if(setLeads)setLeads(currentLeads=>currentLeads.map(lead=>lead.id===selectedLead.id?{...lead,status:'Follow-up',last_activity:now,last:'Just now'}:lead));
+
+      setSent(true);
+
+      setSuccess(`Follow-up email sent to ${selectedLead.name}.`);
+
+      await loadHistory(selectedLead.id);
+
+    }catch(err){
+
+      console.error('Send follow-up error:',err);
+
+      if(messageId&&supabase&&session)await supabase.from('messages').update({status:'failed'}).eq('id',messageId).eq('user_id',session.user.id);
+
+      setError(err.message||'Failed to send the follow-up email. Please try again.');
+
+      await loadHistory(selectedLead.id);
+
+    }finally{setSending(false);}
+
+  };
+
+  return <section className="content">
+
+    <div className="page-title"><div><h1>AI Follow-ups</h1><p>Generate personalized messages for your leads in seconds.</p></div></div>
+
+    <div className="ai-grid">
+
+      <div className="panel">
+
+        <div className="ai-head"><div className="spark"><Sparkles/></div><div><h2>Create a follow-up</h2><p>AI will personalize the message using your lead context.</p></div></div>
+
+        <label>Lead<select value={selectedLeadId} onChange={e=>{setSelectedLeadId(e.target.value);setSent(false);setError('');setSuccess('');setText('Select a lead and click "Generate with AI" to create a personalized follow-up.');}} disabled={loading||sending}>{leads.length===0?<option value="">No leads available</option>:leads.map(lead=><option key={lead.id} value={lead.id}>{lead.name} — {lead.company||'No company'}</option>)}</select></label>
+
+        <label>Tone<div className="tone">{['Professional','Friendly','Short & direct'].map(x=><button type="button" key={x} className={tone===x?'selected':''} onClick={()=>{setTone(x);setSent(false);setSuccess('');}} disabled={loading||sending}>{x}</button>)}</div></label>
+
+        <label>Context<textarea value={context} onChange={e=>{setContext(e.target.value);setSent(false);setSuccess('');}} placeholder="What should the AI mention?" disabled={loading||sending}/></label>
+
+        {error&&<div className="auth-error">{error}</div>}
+
+        {success&&<div style={{padding:'12px',borderRadius:'10px',background:'#ecfdf5',color:'#047857',fontSize:'13px',marginBottom:'12px'}}>{success}</div>}
+
+        <button className="primary generate" onClick={generateFollowup} disabled={loading||sending||!selectedLead}><Sparkles size={17}/>{loading?'Generating...':'Generate with AI'}</button>
+
+      </div>
+
+      <div className="panel preview">
+
+        <div className="panel-head"><div><h2>Generated message</h2><p>Ready to review and send</p></div><span className="ai-badge">AI generated</span></div>
+
+        <div className="messagebox">{text.split('\n').map((x,i)=><div key={i}>{x||'\u00A0'}</div>)}</div>
+
+        <div className="preview-actions">
+
+          <button type="button" onClick={generateFollowup} disabled={loading||sending||!selectedLead}>{loading?'Generating...':'Regenerate'}</button>
+
+          <button type="button" className="primary" onClick={sendFollowup} disabled={sending||loading||!selectedLead||!text.trim()||text.startsWith('Select a lead and click')||sent}><Send size={16}/>{sending?'Sending...':sent?'Sent ✓':'Send follow-up'}</button>
+
+        </div>
+
+        <div style={{marginTop:'16px',paddingTop:'16px',borderTop:'1px solid #e5e7eb'}}>
+
+          <label>Schedule follow-up
+
+            <select value={scheduleOption} onChange={e=>setScheduleOption(e.target.value)} disabled={loading||sending}>
+
+              <option value="tomorrow">Tomorrow at 9:00 AM</option>
+
+              <option value="twoDays">In 2 days at 9:00 AM</option>
+
+              <option value="threeDays">In 3 days at 9:00 AM</option>
+
+              <option value="sevenDays">In 7 days at 9:00 AM</option>
+
+            </select>
+
+          </label>
+
+          <button type="button" className="primary" onClick={scheduleFollowup} disabled={sending||loading||!selectedLead||!text.trim()||text.startsWith('Select a lead and click')}><Clock3 size={16}/>{sending?'Saving...':'Schedule follow-up'}</button>
+
+          <p style={{fontSize:'12px',color:'#6b7280',marginTop:'8px'}}>The message will be stored and sent automatically when the scheduler is connected.</p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div className="panel" style={{marginTop:'16px'}}>
+
+      <div className="panel-head"><div><h2>Scheduled follow-ups</h2><p>Upcoming messages for {selectedLead?.name||'this lead'}.</p></div>{selectedLead&&<span className="ai-badge">{scheduled.filter(x=>x.status==='scheduled').length} scheduled</span>}</div>
+
+      {scheduledLoading?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>Loading scheduled follow-ups...</div>:scheduled.length===0?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>No scheduled follow-ups for this lead.</div>:<div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{scheduled.map(item=><div key={item.id} style={{padding:'14px',border:'1px solid #e5e7eb',borderRadius:'12px',background:'#fff'}}>
+
+        <div style={{display:'flex',justifyContent:'space-between',gap:'12px',alignItems:'center',marginBottom:'8px'}}><strong>{new Date(item.scheduled_for).toLocaleString()}</strong><span style={{padding:'4px 8px',borderRadius:'999px',fontSize:'11px',fontWeight:600,background:item.status==='scheduled'?'#eff6ff':item.status==='cancelled'?'#f3f4f6':'#ecfdf5',color:item.status==='scheduled'?'#1d4ed8':item.status==='cancelled'?'#6b7280':'#047857'}}>{item.status}</span></div>
+
+        <div style={{whiteSpace:'pre-wrap',lineHeight:1.55,fontSize:'14px',color:'#374151'}}>{item.message}</div>
+
+        {item.status==='scheduled'&&<button type="button" onClick={()=>cancelScheduled(item.id)} style={{marginTop:'10px',border:0,background:'transparent',color:'#b91c1c',cursor:'pointer',fontSize:'12px',fontWeight:600}}>Cancel schedule</button>}
+
+      </div>)}</div>}
+
+    </div>
+
+    <div className="panel" style={{marginTop:'16px'}}>
+
+      <div className="panel-head"><div><h2>Follow-up history</h2><p>{selectedLead?`Previous messages sent to ${selectedLead.name}.`:'Select a lead to view previous follow-ups.'}</p></div>{selectedLead&&<span className="ai-badge">{history.length} {history.length===1?'message':'messages'}</span>}</div>
+
+      {historyLoading?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>Loading follow-up history...</div>:history.length===0?<div style={{padding:'20px 0',color:'#6b7280',fontSize:'14px'}}>No follow-ups have been sent to this lead yet.</div>:<div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{history.map(message=>{const status=message.status||'sent';const statusStyles={sent:{background:'#ecfdf5',color:'#047857'},failed:{background:'#fef2f2',color:'#b91c1c'},draft:{background:'#f3f4f6',color:'#4b5563'},delivered:{background:'#eff6ff',color:'#1d4ed8'}};const badge=statusStyles[status]||statusStyles.draft;return <div key={message.id} style={{padding:'14px',border:'1px solid #e5e7eb',borderRadius:'12px',background:'#fff'}}><div style={{display:'flex',justifyContent:'space-between',gap:'12px',alignItems:'center',marginBottom:'8px'}}><strong>{message.sender==='ai'?'LeadPilot AI':message.sender==='lead'?selectedLead?.name||'Lead':'You'}</strong><span style={{...badge,padding:'4px 8px',borderRadius:'999px',fontSize:'11px',fontWeight:600}}>{status}</span></div><div style={{whiteSpace:'pre-wrap',lineHeight:1.55,fontSize:'14px',color:'#374151'}}>{message.content}</div><div style={{marginTop:'8px',fontSize:'12px',color:'#9ca3af'}}>{new Date(message.created_at).toLocaleString()}</div></div>})}</div>}
+
+    </div>
+
+  </section>;
+
 }
 
 function Conversations({ session }) {
 
-  const [conversations, setConversations] = useState([]);
+  const [conversations, setConversations] = useState([]);
 
-  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
 
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
-  const [error, setError] = useState('');
+  const [error, setError] = useState('');
 
-  const loadConversations = async () => {
+  const loadConversations = async () => {
 
-    if (!supabase || !session?.user?.id) {
+    if (!supabase || !session?.user?.id) {
 
-      setConversations([]);
+      setConversations([]);
 
-      setLoading(false);
+      setLoading(false);
 
-      return;
+      return;
 
-    }
+    }
 
-    setLoading(true);
+    setLoading(true);
 
-    setError('');
+    setError('');
 
-    try {
+    try {
 
-      const { data, error: conversationError } = await supabase
+      const { data, error: conversationError } = await supabase
 
-        .from('conversations')
+        .from('conversations')
 
-        .select(`
+        .select(`
 
-          id,
+          id,
 
-          lead_id,
+          lead_id,
 
-          created_at,
+          created_at,
 
-          updated_at,
+          updated_at,
 
-          leads (
+          leads (
 
-            id,
+            id,
 
-            name,
+            name,
 
-            company,
+            company,
 
-            email
+            email
 
-          )
+          )
 
-        `)
+        `)
 
-        .eq('user_id', session.user.id)
+        .eq('user_id', session.user.id)
 
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false });
 
-      if (conversationError) {
+      if (conversationError) {
 
-        throw conversationError;
+        throw conversationError;
 
-      }
+      }
 
-      setConversations(data || []);
+      setConversations(data || []);
 
-      if (
+      if (
 
-        selectedConversation &&
+        selectedConversation &&
 
-        !data?.some((item) => item.id === selectedConversation.id)
+        !data?.some((item) => item.id === selectedConversation.id)
 
-      ) {
+      ) {
 
-        setSelectedConversation(null);
+        setSelectedConversation(null);
 
-        setMessages([]);
+        setMessages([]);
 
-      }
+      }
 
-    } catch (err) {
+    } catch (err) {
 
-      console.error('Load conversations error:', err);
+      console.error('Load conversations error:', err);
 
-      setError(
+      setError(
 
-        err.message || 'Failed to load conversations.'
+        err.message || 'Failed to load conversations.'
 
-      );
+      );
 
-    } finally {
+    } finally {
 
-      setLoading(false);
+      setLoading(false);
 
-    }
+    }
 
-  };
+  };
 
-  useEffect(() => {
+  useEffect(() => {
 
-    loadConversations();
+    loadConversations();
 
-  }, [session]);
+  }, [session]);
 
-  const openConversation = async (conversation) => {
+  const openConversation = async (conversation) => {
 
-    setSelectedConversation(conversation);
+    setSelectedConversation(conversation);
 
-    setMessages([]);
+    setMessages([]);
 
-    setMessagesLoading(true);
+    setMessagesLoading(true);
 
-    setError('');
+    setError('');
 
-    try {
+    try {
 
-      const { data, error: messageError } = await supabase
+      const { data, error: messageError } = await supabase
 
-        .from('messages')
+        .from('messages')
 
-        .select('id, sender, content, status, created_at')
+        .select('id, sender, content, status, created_at')
 
-        .eq('conversation_id', conversation.id)
+        .eq('conversation_id', conversation.id)
 
-        .eq('user_id', session.user.id)
+        .eq('user_id', session.user.id)
 
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: true });
 
-      if (messageError) {
+      if (messageError) {
 
-        throw messageError;
+        throw messageError;
 
-      }
+      }
 
-      setMessages(data || []);
+      setMessages(data || []);
 
-    } catch (err) {
+    } catch (err) {
 
-      console.error('Load messages error:', err);
+      console.error('Load messages error:', err);
 
-      setError(
+      setError(
 
-        err.message || 'Failed to load conversation messages.'
+        err.message || 'Failed to load conversation messages.'
 
-      );
+      );
 
-    } finally {
+    } finally {
 
-      setMessagesLoading(false);
+      setMessagesLoading(false);
 
-    }
+    }
 
-  };
+  };
 
-  const lead = selectedConversation?.leads;
+  const lead = selectedConversation?.leads;
 
-  return (
+  return (
 
-    <section className="content">
+    <section className="content">
 
-      <div className="page-title">
+      <div className="page-title">
 
-        <div>
+        <div>
 
-          <h1>Conversations</h1>
+          <h1>Conversations</h1>
 
-          <p>
+          <p>
 
-            Keep track of your AI-assisted lead conversations.
+            Keep track of your AI-assisted lead conversations.
 
-          </p>
+          </p>
 
-        </div>
+        </div>
 
-      </div>
+      </div>
 
-      {error && (
+      {error && (
 
-        <div className="auth-error">
+        <div className="auth-error">
 
-          {error}
+          {error}
 
-        </div>
+        </div>
 
-      )}
+      )}
 
-      {loading ? (
+      {loading ? (
 
-        <div className="panel">
+        <div className="panel">
 
-          <p>Loading conversations...</p>
+          <p>Loading conversations...</p>
 
-        </div>
+        </div>
 
-      ) : conversations.length === 0 ? (
+      ) : conversations.length === 0 ? (
 
-        <div className="panel">
+        <div className="panel">
 
-          <h2>No conversations yet</h2>
+          <h2>No conversations yet</h2>
 
-          <p>
+          <p>
 
-            Generate and send an AI follow-up from the AI
+            Generate and send an AI follow-up from the AI
 
-            Follow-ups page to create your first conversation.
+            Follow-ups page to create your first conversation.
 
-          </p>
+          </p>
 
-        </div>
+        </div>
 
-      ) : (
+      ) : (
 
-        <div
+        <div
 
-          style={{
+          style={{
 
-            display: 'grid',
+            display: 'grid',
 
-            gridTemplateColumns: selectedConversation
+            gridTemplateColumns: selectedConversation
 
-              ? 'minmax(280px, 0.9fr) minmax(360px, 1.4fr)'
+              ? 'minmax(280px, 0.9fr) minmax(360px, 1.4fr)'
 
-              : '1fr',
+              : '1fr',
 
-            gap: '16px',
+            gap: '16px',
 
-            alignItems: 'start',
+            alignItems: 'start',
 
-          }}
+          }}
 
-        >
+        >
 
-          <div className="conversation panel">
+          <div className="conversation panel">
 
-            {conversations.map((conversation) => {
+            {conversations.map((conversation) => {
 
-              const conversationLead = conversation.leads;
+              const conversationLead = conversation.leads;
 
-              const isSelected =
+              const isSelected =
 
-                selectedConversation?.id === conversation.id;
+                selectedConversation?.id === conversation.id;
 
-              return (
+              return (
 
-                <button
+                <button
 
-                  key={conversation.id}
+                  key={conversation.id}
 
-                  type="button"
+                  type="button"
 
-                  className="conversation-row"
+                  className="conversation-row"
 
-                  onClick={() =>
+                  onClick={() =>
 
-                    openConversation(conversation)
+                    openConversation(conversation)
 
-                  }
+                  }
 
-                  style={{
+                  style={{
 
-                    width: '100%',
+                    width: '100%',
 
-                    border: '0',
+                    border: '0',
 
-                    background: isSelected
+                    background: isSelected
 
-                      ? 'rgba(99, 88, 235, 0.08)'
+                      ? 'rgba(99, 88, 235, 0.08)'
 
-                      : 'transparent',
+                      : 'transparent',
 
-                    cursor: 'pointer',
+                    cursor: 'pointer',
 
-                    textAlign: 'left',
+                    textAlign: 'left',
 
-                  }}
+                  }}
 
-                >
+                >
 
-                  <div className="person">
+                  <div className="person">
 
-                    {(conversationLead?.name || 'Lead')
+                    {(conversationLead?.name || 'Lead')
 
-                      .split(' ')
+                      .split(' ')
 
-                      .map((x) => x[0])
+                      .map((x) => x[0])
 
-                      .join('')}
+                      .join('')}
 
-                  </div>
+                  </div>
 
-                  <div>
+                  <div>
 
-                    <strong>
+                    <strong>
 
-                      {conversationLead?.name || 'Unknown lead'}
+                      {conversationLead?.name || 'Unknown lead'}
 
-                    </strong>
+                    </strong>
 
-                    <span>
+                    <span>
 
-                      {conversationLead?.company ||
+                      {conversationLead?.company ||
 
-                        'No company'}{' '}
+                        'No company'}{' '}
 
-                      · Last message{' '}
+                      · Last message{' '}
 
-                      {new Date(
+                      {new Date(
 
-                        conversation.updated_at
+                        conversation.updated_at
 
-                      ).toLocaleString()}
+                      ).toLocaleString()}
 
-                    </span>
+                    </span>
 
-                  </div>
+                  </div>
 
-                  <span className="pill interested">
+                  <span className="pill interested">
 
-                    Active
+                    Active
 
-                  </span>
+                  </span>
 
-                  <ChevronRight />
+                  <ChevronRight />
 
-                </button>
+                </button>
 
-              );
+              );
 
-            })}
+            })}
 
-          </div>
+          </div>
 
-          {selectedConversation && (
+          {selectedConversation && (
 
-            <div className="panel">
+            <div className="panel">
 
-              <div className="panel-head">
+              <div className="panel-head">
 
-                <div>
+                <div>
 
-                  <h2>
+                  <h2>
 
-                    {lead?.name || 'Conversation'}
+                    {lead?.name || 'Conversation'}
 
-                  </h2>
+                  </h2>
 
-                  <p>
+                  <p>
 
-                    {lead?.company || 'No company'}
+                    {lead?.company || 'No company'}
 
-                    {lead?.email
+                    {lead?.email
 
-                      ? ` · ${lead.email}`
+                      ? ` · ${lead.email}`
 
-                      : ''}
+                      : ''}
 
-                  </p>
+                  </p>
 
-                </div>
+                </div>
 
-                <button
+                <button
 
-                  type="button"
+                  type="button"
 
-                  onClick={() => {
+                  onClick={() => {
 
-                    setSelectedConversation(null);
+                    setSelectedConversation(null);
 
-                    setMessages([]);
+                    setMessages([]);
 
-                  }}
+                  }}
 
-                >
+                >
 
-                  Close
+                  Close
 
-                </button>
+                </button>
 
-              </div>
+              </div>
 
-              <div
+              <div
 
-                style={{
+                style={{
 
-                  display: 'flex',
+                  display: 'flex',
 
-                  flexDirection: 'column',
+                  flexDirection: 'column',
 
-                  gap: '12px',
+                  gap: '12px',
 
-                  minHeight: '260px',
+                  minHeight: '260px',
 
-                  maxHeight: '480px',
+                  maxHeight: '480px',
 
-                  overflowY: 'auto',
+                  overflowY: 'auto',
 
-                  padding: '12px 0',
+                  padding: '12px 0',
 
-                }}
+                }}
 
-              >
+              >
 
-                {messagesLoading ? (
+                {messagesLoading ? (
 
-                  <p>Loading messages...</p>
+                  <p>Loading messages...</p>
 
-                ) : messages.length === 0 ? (
+                ) : messages.length === 0 ? (
 
-                  <p>No messages in this conversation yet.</p>
+                  <p>No messages in this conversation yet.</p>
 
-                ) : (
+                ) : (
 
-                  messages.map((message) => (
+                  messages.map((message) => (
 
-                    <div
+                    <div
 
-                      key={message.id}
+                      key={message.id}
 
-                      style={{
+                      style={{
 
-                        alignSelf:
+                        alignSelf:
 
-                          message.sender === 'ai'
+                          message.sender === 'ai'
 
-                            ? 'flex-end'
+                            ? 'flex-end'
 
-                            : 'flex-start',
+                            : 'flex-start',
 
-                        maxWidth: '78%',
+                        maxWidth: '78%',
 
-                        padding: '12px 14px',
+                        padding: '12px 14px',
 
-                        borderRadius: '14px',
+                        borderRadius: '14px',
 
-                        background:
+                        background:
 
-                          message.sender === 'ai'
+                          message.sender === 'ai'
 
-                            ? '#eeeaff'
+                            ? '#eeeaff'
 
-                            : '#f3f4f6',
+                            : '#f3f4f6',
 
-                      }}
+                      }}
 
-                    >
+                    >
 
-                      <small
+                      <small
 
-                        style={{
+                        style={{
 
-                          display: 'block',
+                          display: 'block',
 
-                          marginBottom: '5px',
+                          marginBottom: '5px',
 
-                          fontWeight: 600,
+                          fontWeight: 600,
 
-                        }}
+                        }}
 
-                      >
+                      >
 
-                        {message.sender === 'ai'
+                        {message.sender === 'ai'
 
-                          ? 'LeadPilot AI'
+                          ? 'LeadPilot AI'
 
-                          : message.sender === 'lead'
+                          : message.sender === 'lead'
 
-                            ? lead?.name || 'Lead'
+                            ? lead?.name || 'Lead'
 
-                            : 'You'}
+                            : 'You'}
 
-                      </small>
+                      </small>
 
-                      <div
+                      <div
 
-                        style={{
+                        style={{
 
-                          whiteSpace: 'pre-wrap',
+                          whiteSpace: 'pre-wrap',
 
-                          lineHeight: 1.5,
+                          lineHeight: 1.5,
 
-                        }}
+                        }}
 
-                      >
+                      >
 
-                        {message.content}
+                        {message.content}
 
-                      </div>
+                      </div>
 
-                      <small
+                      <small
 
-                        style={{
+                        style={{
 
-                          display: 'block',
+                          display: 'block',
 
-                          marginTop: '6px',
+                          marginTop: '6px',
 
-                          opacity: 0.6,
+                          opacity: 0.6,
 
-                        }}
+                        }}
 
-                      >
+                      >
 
-                        {new Date(
+                        {new Date(
 
-                          message.created_at
+                          message.created_at
 
-                        ).toLocaleString()}
+                        ).toLocaleString()}
 
-                      </small>
+                      </small>
 
-                    </div>
+                    </div>
 
-                  ))
+                  ))
 
-                )}
+                )}
 
-              </div>
+              </div>
 
-            </div>
+            </div>
 
-          )}
+          )}
 
-        </div>
+        </div>
 
-      )}
+      )}
 
-    </section>
+    </section>
 
-  );
+  );
 
 }
 
@@ -1412,348 +1633,348 @@ function SettingsPage(){return <section className="content"><div className="page
 
 function LeadModal({ lead, close, setLeads, session }) {
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState('');
+  const [error, setError] = useState('');
 
-  const [qualification, setQualification] = useState({
+  const [qualification, setQualification] = useState({
 
-    score: lead.score,
+    score: lead.score,
 
-    status: lead.status,
+    status: lead.status,
 
-    reason: lead.notes || 'No AI qualification yet.',
+    reason: lead.notes || 'No AI qualification yet.',
 
-  });
+  });
 
-  const qualifyLead = async () => {
+  const qualifyLead = async () => {
 
-    if (!lead) return;
+    if (!lead) return;
 
-    setLoading(true);
+    setLoading(true);
 
-    setError('');
+    setError('');
 
-    try {
+    try {
 
-      // Ask Gemini to qualify the lead
+      // Ask Gemini to qualify the lead
 
-      const response = await fetch(
+      const response = await fetch(
 
-        'http://localhost:5000/api/ai/qualify-lead',
+        `${API_URL}/api/ai/qualify-lead`,
 
-        {
+        {
 
-          method: 'POST',
+          method: 'POST',
 
-          headers: {
+          headers: {
 
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json',
 
-          },
+          },
 
-          body: JSON.stringify({
+          body: JSON.stringify({
 
-            name: lead.name,
+            name: lead.name,
 
-            business: lead.company,
+            business: lead.company,
 
-            email: lead.email,
+            email: lead.email,
 
-            phone: lead.phone,
+            phone: lead.phone,
 
-            requirement:
+            requirement:
 
-              lead.requirement ||
+              lead.requirement ||
 
-              lead.notes ||
+              lead.notes ||
 
-              'Potential customer interested in our service.',
+              'Potential customer interested in our service.',
 
-            budget:
+            budget:
 
-              lead.budget ||
+              lead.budget ||
 
-              'Not provided',
+              'Not provided',
 
-          }),
+          }),
 
-        }
+        }
 
-      );
+      );
 
-      const data = await response.json();
+      const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok || !data.success) {
 
-        throw new Error(
+        throw new Error(
 
-          data.error || 'Failed to qualify lead.'
+          data.error || 'Failed to qualify lead.'
 
-        );
+        );
 
-      }
+      }
 
-      const updatedQualification = {
+      const updatedQualification = {
 
-        score: data.score,
+        score: data.score,
 
-        status: data.status,
+        status: data.status,
 
-        reason: data.reason,
+        reason: data.reason,
 
-      };
+      };
 
-      setQualification(updatedQualification);
+      setQualification(updatedQualification);
 
-      // Save qualification to Supabase
+      // Save qualification to Supabase
 
-      if (supabase && session) {
+      if (supabase && session) {
 
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabase
 
-          .from('leads')
+          .from('leads')
 
-          .update({
+          .update({
 
-            score: data.score,
+            score: data.score,
 
-            status: data.status,
+            status: data.status,
 
-            notes: data.reason,
+            notes: data.reason,
 
-            last_activity: new Date().toISOString(),
+            last_activity: new Date().toISOString(),
 
-          })
+          })
 
-          .eq('id', lead.id)
+          .eq('id', lead.id)
 
-          .eq('user_id', session.user.id);
+          .eq('user_id', session.user.id);
 
-        if (updateError) {
+        if (updateError) {
 
-          throw updateError;
+          throw updateError;
 
-        }
+        }
 
-      }
+      }
 
-      // Update LeadPilot UI immediately
+      // Update LeadPilot UI immediately
 
-      setLeads((currentLeads) =>
+      setLeads((currentLeads) =>
 
-        currentLeads.map((item) =>
+        currentLeads.map((item) =>
 
-          item.id === lead.id
+          item.id === lead.id
 
-            ? {
+            ? {
 
-                ...item,
+                ...item,
 
-                score: data.score,
+                score: data.score,
 
-                status: data.status,
+                status: data.status,
 
-                notes: data.reason,
+                notes: data.reason,
 
-                last_activity: new Date().toISOString(),
+                last_activity: new Date().toISOString(),
 
-                last: 'Just now',
+                last: 'Just now',
 
-              }
+              }
 
-            : item
+            : item
 
-        )
+        )
 
-      );
+      );
 
-    } catch (err) {
+    } catch (err) {
 
-      console.error('Lead qualification error:', err);
+      console.error('Lead qualification error:', err);
 
-      setError(
+      setError(
 
-        err.message ||
+        err.message ||
 
-          'Unable to qualify this lead. Please try again.'
+          'Unable to qualify this lead. Please try again.'
 
-      );
+      );
 
-    } finally {
+    } finally {
 
-      setLoading(false);
+      setLoading(false);
 
-    }
+    }
 
-  };
+  };
 
-  const statusClass =
+  const statusClass =
 
-    qualification.status?.toLowerCase() || 'new';
+    qualification.status?.toLowerCase() || 'new';
 
-  return (
+  return (
 
-    <div className="modal-bg" onClick={close}>
+    <div className="modal-bg" onClick={close}>
 
-      <div
+      <div
 
-        className="modal"
+        className="modal"
 
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
 
-      >
+      >
 
-        <button
+        <button
 
-          className="modal-close"
+          className="modal-close"
 
-          onClick={close}
+          onClick={close}
 
-        >
+        >
 
-          <X />
+          <X />
 
-        </button>
+        </button>
 
-        <div className="leadhero">
+        <div className="leadhero">
 
-          <div className="bigperson">
+          <div className="bigperson">
 
-            {lead.name
+            {lead.name
 
-              .split(' ')
+              .split(' ')
 
-              .map((x) => x[0])
+              .map((x) => x[0])
 
-              .join('')}
+              .join('')}
 
-          </div>
+          </div>
 
-          <div>
+          <div>
 
-            <h2>{lead.name}</h2>
+            <h2>{lead.name}</h2>
 
-            <p>
+            <p>
 
-              {lead.company || 'No company'} ·{' '}
+              {lead.company || 'No company'} ·{' '}
 
-              {lead.email || 'No email'}
+              {lead.email || 'No email'}
 
-            </p>
+            </p>
 
-          </div>
+          </div>
 
-        </div>
+        </div>
 
-        <div className="modalstats">
+        <div className="modalstats">
 
-          <div>
+          <div>
 
-            <small>AI score</small>
+            <small>AI score</small>
 
-            <strong>
+            <strong>
 
-              {qualification.score}/100
+              {qualification.score}/100
 
-            </strong>
+            </strong>
 
-          </div>
+          </div>
 
-          <div>
+          <div>
 
-            <small>Status</small>
+            <small>Status</small>
 
-            <span
+            <span
 
-              className={`pill ${statusClass}`}
+              className={`pill ${statusClass}`}
 
-            >
+            >
 
-              {qualification.status}
+              {qualification.status}
 
-            </span>
+            </span>
 
-          </div>
+          </div>
 
-          <div>
+          <div>
 
-            <small>Last activity</small>
+            <small>Last activity</small>
 
-            <strong>
+            <strong>
 
-              {loading ? 'Analyzing...' : lead.last}
+              {loading ? 'Analyzing...' : lead.last}
 
-            </strong>
+            </strong>
 
-          </div>
+          </div>
 
-        </div>
+        </div>
 
-        <div className="summary">
+        <div className="summary">
 
-          <h3>Lead details</h3>
+          <h3>Lead details</h3>
 
-          <p>
+          <p>
 
-            <strong>Requirement:</strong> {lead.requirement || 'Not provided'}
+            <strong>Requirement:</strong> {lead.requirement || 'Not provided'}
 
-          </p>
+          </p>
 
-          <p>
+          <p>
 
-            <strong>Budget:</strong> {lead.budget || 'Not provided'}
+            <strong>Budget:</strong> {lead.budget || 'Not provided'}
 
-          </p>
+          </p>
 
-        </div>
+        </div>
 
-        <div className="summary">
+        <div className="summary">
 
-          <h3>AI qualification</h3>
+          <h3>AI qualification</h3>
 
-          <p>
+          <p>
 
-            {qualification.reason}
+            {qualification.reason}
 
-          </p>
+          </p>
 
-        </div>
+        </div>
 
-        {error && (
+        {error && (
 
-          <div className="auth-error">
+          <div className="auth-error">
 
-            {error}
+            {error}
 
-          </div>
+          </div>
 
-        )}
+        )}
 
-        <button
+        <button
 
-          className="primary full"
+          className="primary full"
 
-          onClick={qualifyLead}
+          onClick={qualifyLead}
 
-          disabled={loading}
+          disabled={loading}
 
-        >
+        >
 
-          <Sparkles size={17} />
+          <Sparkles size={17} />
 
-          {loading
+          {loading
 
-            ? 'Analyzing lead...'
+            ? 'Analyzing lead...'
 
-            : 'Qualify with AI'}
+            : 'Qualify with AI'}
 
-        </button>
+        </button>
 
-      </div>
+      </div>
 
-    </div>
+    </div>
 
-  );
+  );
 
 }createRoot(document.getElementById('root')).render(<App/>);
